@@ -1,0 +1,6 @@
+[submodule "include/parallel-hashmap"]
+	path = include/parallel-hashmap
+	url = https://github.com/greg7mdp/parallel-hashmap
+[submodule "include/argparse"]
+	path = include/argparse
+	url = https://github.com/p-ranav/argparse
