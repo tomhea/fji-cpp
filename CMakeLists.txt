@@ -6,5 +6,5 @@ set(CMAKE_CXX_FLAGS_RELEASE "-Wall -Wpedantic -O3")
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(fji fji.cpp)
+add_executable(fji main.cpp)
 
