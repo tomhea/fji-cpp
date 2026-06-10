@@ -38,6 +38,13 @@ constexpr u64 MAX_SUPPORTED_VERSION = 2;
 
 #define readTo(file, var) file.read(reinterpret_cast<char*>(&(var)),sizeof(var))
 
+#define assertRead(file, var) do { \
+    if (!(file).read(reinterpret_cast<char*>(&(var)), sizeof(var))) { \
+        std::cerr << "Error: unexpected end of file." << std::endl; \
+        exit(1); \
+    } \
+} while(0)
+
 
 struct Segment {
     u64 segmentStart, segmentLen, dataStart, dataLen;
@@ -84,34 +91,33 @@ public:
         u64 segmentNum, version, flags = 0;
         u32 reserved = 0;
 
-        readTo(file, version);
-        readTo(file, segmentNum);
+        assertRead(file, version);
+        assertRead(file, segmentNum);
 
         if (version > MAX_SUPPORTED_VERSION) {
-            std::cerr << "Error: This interpreter doesn't support only fjm versions 0-" << MAX_SUPPORTED_VERSION
+            std::cerr << "Error: This interpreter only supports fjm versions 0-" << MAX_SUPPORTED_VERSION
             << ". It doesn't support version " << version << "." << std::endl;
             exit(1);
         }
 
         if (version > 0) {
-            readTo(file, flags);
-            readTo(file, reserved);
+            assertRead(file, flags);
+            assertRead(file, reserved);
         }
 
         std::vector<Segment> segments;
         u64 segmentStart, segmentLen, dataStart, dataLen;
         for (u64 i = 0; i < segmentNum; i++) {
-            readTo(file, segmentStart);
-            readTo(file, segmentLen);
-            readTo(file, dataStart);
-            readTo(file, dataLen);
+            assertRead(file, segmentStart);
+            assertRead(file, segmentLen);
+            assertRead(file, dataStart);
+            assertRead(file, dataLen);
             segments.push_back({segmentStart, segmentLen, dataStart, dataLen});
         }
 
         std::vector<W> data;
         W datum;
-        while (!file.eof()) {
-            readTo(file, datum);
+        while (file.read(reinterpret_cast<char*>(&datum), sizeof(datum))) {
             data.push_back(datum);
         }
 
@@ -123,8 +129,29 @@ public:
                 exit(1);
             }
 
+            // Guard against OOB into the data vector (also catches u64 overflow).
+            if (seg.dataLen > data.size() ||
+                (seg.dataLen > 0 && seg.dataStart > data.size() - seg.dataLen)) {
+                std::cerr << "Error: segment data range [" << seg.dataStart << ", "
+                    << seg.dataStart + seg.dataLen << ") exceeds data section size "
+                    << data.size() << "." << std::endl;
+                exit(1);
+            }
+
+            // Guard against addresses that don't fit in the word-width type W.
+            if constexpr (!std::is_same_v<W, u64>) {
+                constexpr u64 maxAddr = (u64{1} << (sizeof(W) * 8)) - 1;
+                if (seg.segmentStart > maxAddr ||
+                    seg.segmentLen > maxAddr ||
+                    seg.segmentStart + seg.segmentLen > maxAddr + 1) {
+                    std::cerr << "Error: segment address range exceeds "
+                        << (sizeof(W) * 8) << "-bit address space." << std::endl;
+                    exit(1);
+                }
+            }
+
             for (u64 i = 0; i < seg.dataLen; i++){
-                W word = data.at(seg.dataStart + i);
+                W word = data[seg.dataStart + i];
                 if ((2 == version) && ((seg.segmentStart + i) % 2 == 1)) {
                     word += (seg.segmentStart + i) * w;
                 }
@@ -152,8 +179,9 @@ public:
         if (addr <= input_bit && input_bit < addr + w) {
             if (inLen == 0) {
                 stats.stopTimer();
-                inCurr = input.get();
+                int c = input.get();
                 stats.startTimer();
+                inCurr = (c == std::char_traits<char>::eof()) ? u8{0} : static_cast<u8>(c);
                 inLen = 8;
             }
 
@@ -200,7 +228,7 @@ public:
             }
         } else {
             const W wordAddr = addr / w;
-            const W bitMask = 1 << (addr % w);
+            const W bitMask = static_cast<W>(1) << (addr % w);
             if (!mem.modify_if(wordAddr, [bitMask](auto& val) {val.second ^= bitMask;})) {
                 flip_not_mapped_word(addr, wordAddr);
             }
@@ -238,7 +266,7 @@ private:
     }
 
     inline W flip_not_mapped_word(W addr, W wordAddr) {
-        const W word_value = 1 << (addr % w);
+        const W word_value = static_cast<W>(1) << (addr % w);
 
         if constexpr (ZeroInit) {
             mem[wordAddr] = word_value;

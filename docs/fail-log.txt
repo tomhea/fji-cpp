@@ -1,0 +1,14 @@
+PASS  test_empty_file: rc=1
+PASS  test_truncated_after_magic: rc=1
+PASS  test_bad_magic: rc=1
+PASS  test_version_error_message: rc=1 stderr=b"Error: This interpreter only supports fjm versions 0-2. It doesn't support version 99."
+PASS  test_large_segmentnum_rejected_quickly: rc=1
+PASS  test_segment_oob_is_clean_error: rc=1
+PASS  test_eof_loop_no_extra_word: rc=1
+PASS  test_stdin_eof_does_not_hang: rc=0 (completed without hanging)
+FAIL  test_narrow_width_segment_addr_out_of_range: Expected 'address space' guard message, got: b'Error: read from an uninitialized address 0x\x08.\n' (silent truncation still present)
+PASS  test_hello_world_v0: output=b'Hello, World!\n(:'
+PASS  test_hello_world_v1: output=b'Hello, World!\n(:'
+PASS  test_hello_world_v2: output=b'Hello, World!\n(:'
+
+12 tests: 11 passed, 1 failed, 0 skipped
