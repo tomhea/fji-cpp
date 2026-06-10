@@ -166,6 +166,21 @@ def test_stdin_eof_does_not_hang():
         return "FAIL: timed out — program hung on empty stdin"
 
 
+def test_narrow_width_segment_addr_out_of_range():
+    """8-bit mode: segment with segmentStart=256 (> u8 max) must give a clean error."""
+    # Build a v0 8-bit .fjm: 1 segment, segmentStart=256 (exceeds 0xFF), 1 data byte.
+    hdr = make_header(w_bits=8, version=0, seg_num=1)
+    hdr += struct.pack("<QQQQ", 256, 1, 0, 1)  # segStart=256 > 0xFF, segLen=1, dataStart=0, dataLen=1
+    hdr += struct.pack("<B", 0)                 # 1 data byte
+    rc, _, stderr = run_fji(hdr)
+    assert rc != 0, f"Expected non-zero exit for out-of-range 8-bit address, got rc={rc}"
+    assert rc not in (-6, -11), f"Crash (rc={rc}) on narrow-width OOB address — truncation not guarded"
+    assert rc != -999, "Timed out on narrow-width OOB address"
+    assert b"address" in stderr.lower() or b"segment" in stderr.lower(), \
+        f"Expected address/segment error, got: {stderr!r}"
+    return f"rc={rc} stderr={stderr.strip()!r}"
+
+
 def test_hello_world_v0():
     """hello_world_v0.fjm must exit 0 and produce non-empty printable output."""
     path = os.path.join(TESTS_DIR, "hello_world_v0.fjm")
@@ -212,6 +227,7 @@ TESTS = [
     test_segment_oob_is_clean_error,
     test_eof_loop_no_extra_word,
     test_stdin_eof_does_not_hang,
+    test_narrow_width_segment_addr_out_of_range,
     test_hello_world_v0,
     test_hello_world_v1,
     test_hello_world_v2,
