@@ -64,12 +64,12 @@ void cpu(std::ifstream& file, bool silent) {
     //TODO use the silent field.
 
     u16 magic, w;
-    readTo(file, magic);
+    assertRead(file, magic);
     if (magic != FJ_MAGIC) {
         std::cerr << "Error: bad magic code (0x" << std::hex << magic << ", should be 0x" << std::hex << FJ_MAGIC << ")." << std::endl;
         exit(1);
     }
-    readTo(file, w);
+    assertRead(file, w);
 
     //TODO read memory here and not in run?
 

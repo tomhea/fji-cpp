@@ -1,0 +1,13 @@
+PASS  test_empty_file: rc=1
+PASS  test_truncated_after_magic: rc=1
+PASS  test_bad_magic: rc=1
+FAIL  test_version_error_message: Inverted error message still present: b"Error: This interpreter doesn't support only fjm versions 0-2. It doesn't support version 99.\n"
+FAIL  test_large_segmentnum_rejected_quickly: Timed out: large segmentNum not rejected (DoS not fixed)
+FAIL  test_segment_oob_is_clean_error: Crash (SIGABRT/SIGSEGV/abort) rc=-6: OOB not handled cleanly
+PASS  test_eof_loop_no_extra_word: rc=1
+FAIL  test_stdin_eof_does_not_hang: FAIL: timed out — program hung on empty stdin
+PASS  test_hello_world_v0: output=b'Hello, World!\n(:'
+PASS  test_hello_world_v1: output=b'Hello, World!\n(:'
+PASS  test_hello_world_v2: output=b'Hello, World!\n(:'
+
+11 tests: 7 passed, 4 failed, 0 skipped

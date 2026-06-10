@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
     auto file_path = program.get<std::string>("file");
     auto silent = program.get<bool>("--silent");
 
-    std::ifstream file(file_path);
+    std::ifstream file(file_path, std::ios::binary);
     if (file.fail()) {
         std::cerr << "Can't open file " << file_path << "." << std::endl;
         exit(1);
