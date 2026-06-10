@@ -176,8 +176,8 @@ def test_narrow_width_segment_addr_out_of_range():
     assert rc != 0, f"Expected non-zero exit for out-of-range 8-bit address, got rc={rc}"
     assert rc not in (-6, -11), f"Crash (rc={rc}) on narrow-width OOB address — truncation not guarded"
     assert rc != -999, "Timed out on narrow-width OOB address"
-    assert b"address" in stderr.lower() or b"segment" in stderr.lower(), \
-        f"Expected address/segment error, got: {stderr!r}"
+    assert b"address space" in stderr, \
+        f"Expected 'address space' guard message, got: {stderr!r} (silent truncation still present)"
     return f"rc={rc} stderr={stderr.strip()!r}"
 
 

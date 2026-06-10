@@ -6,8 +6,9 @@ PASS  test_large_segmentnum_rejected_quickly: rc=1
 PASS  test_segment_oob_is_clean_error: rc=1
 PASS  test_eof_loop_no_extra_word: rc=1
 PASS  test_stdin_eof_does_not_hang: rc=0 (completed without hanging)
+PASS  test_narrow_width_segment_addr_out_of_range: rc=1 stderr=b'Error: segment address range exceeds 8-bit address space.'
 PASS  test_hello_world_v0: output=b'Hello, World!\n(:'
 PASS  test_hello_world_v1: output=b'Hello, World!\n(:'
 PASS  test_hello_world_v2: output=b'Hello, World!\n(:'
 
-11 tests: 11 passed, 0 failed, 0 skipped
+12 tests: 12 passed, 0 failed, 0 skipped
